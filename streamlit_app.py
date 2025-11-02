@@ -5,6 +5,7 @@ from PIL import Image
 import json
 import base64
 from io import BytesIO
+import keras
 
 # Page configuration
 st.set_page_config(
@@ -54,7 +55,8 @@ st.markdown("""
 def load_model():
     """Load the TensorFlow model (cached for performance)"""
     try:
-        model = tf.keras.models.load_model('MNIST_epic_number_reader.model')
+        tfsmlayer = keras.layers.TFSMLayer("MNIST_epic_number_reader.model", call_endpoint='serving_default')
+        model = keras.Sequential([tfsmlayer])
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
