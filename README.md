@@ -13,7 +13,7 @@ An interactive web application for recognizing handwritten digits using a deep l
 - **Real-time Prediction**: Get instant predictions with confidence scores
 - **Top 3 Predictions**: See the top 3 most likely digits with their probabilities
 - **Beautiful UI**: Modern gradient design with smooth animations
-- **Adjustable Brush**: Customize your drawing experience
+- **Custom HTML Canvas**: No external dependencies - built-in canvas
 - **Mobile Support**: Touch-friendly canvas works on all devices
 - **100% Free**: Host forever on Streamlit Cloud - no credit card required!
 
@@ -48,18 +48,18 @@ An interactive web application for recognizing handwritten digits using a deep l
 ## 🎮 How to Use
 
 1. **Draw a digit** on the canvas (0-9)
-   - Adjust brush size using the slider
    - Draw with your mouse or touch
    - Draw in the center for best results
 
-2. **Click "🔍 Predict"** button
+2. **Capture & Upload**
+   - Take a screenshot of your drawing
+   - Save as PNG or JPG
+   - Upload using the file uploader below
+
+3. **View results**
    - See instant predictions!
    - Main prediction with confidence
    - Top 3 predictions with probabilities
-
-3. **View results**
-   - Large digit display
-   - Confidence bar
    - All probabilities (expandable)
 
 4. **Clear** and start over!
@@ -101,7 +101,7 @@ MNIST-Project/
 ## 🛠️ Technologies Used
 
 - **Streamlit**: Interactive web app framework
-- **landingai-streamlit-drawable-canvas**: Drawing canvas component (maintained fork)
+- **Custom HTML5 Canvas**: Drawing canvas embedded in page
 - **TensorFlow/Keras**: Deep learning model
 - **NumPy**: Numerical operations
 - **Pillow**: Image processing
@@ -126,7 +126,7 @@ MNIST-Project/
 
 - ✅ Draw in the **center** of the canvas
 - ✅ Make digits **clear and bold**
-- ✅ Use **thick strokes** (adjust brush size)
+- ✅ Use **thick, bold strokes**
 - ✅ Try to match **printed number style**
 - ❌ Avoid extra lines or marks
 - ❌ Avoid very thin or shaky lines
@@ -152,7 +152,7 @@ model.save('MNIST_epic_number_reader.model')
 ### Modify Features
 
 The Streamlit app is easy to extend. Edit `streamlit_app.py` to add:
-- Different brush styles
+- Different brush sizes
 - Color options
 - History tracking
 - Export predictions
@@ -163,7 +163,6 @@ The Streamlit app is easy to extend. Edit `streamlit_app.py` to add:
 - [MNIST Dataset](http://yann.lecun.com/exdb/mnist/)
 - [TensorFlow Tutorials](https://www.tensorflow.org/tutorials)
 - [Streamlit Documentation](https://docs.streamlit.io/)
-- [LandingAI Drawable Canvas](https://github.com/landing-ai/streamlit-drawable-canvas)
 - [Streamlit Cloud Deployment](https://docs.streamlit.io/streamlit-community-cloud)
 
 ## 🤝 Contributing
@@ -180,5 +179,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - MNIST dataset creators
 - TensorFlow team
 - Streamlit team
-- LandingAI (streamlit-drawable-canvas fork)
 - All contributors and users
