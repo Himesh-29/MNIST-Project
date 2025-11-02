@@ -1,11 +1,7 @@
 import streamlit as st
-import tensorflow as tf
 import numpy as np
 from PIL import Image
-import json
-import base64
-from io import BytesIO
-import keras
+from streamlit_drawable_canvas import st_canvas
 
 # Page configuration
 st.set_page_config(
@@ -47,16 +43,26 @@ st.markdown("""
         color: white;
         margin: 10px 0;
     }
+    /* Hide canvas toolbar completely */
+    .stSelectbox, .stNumberInput {
+        display: none !important;
+    }
+    /* Canvas border styling */
+    canvas {
+        border: 2px solid #667eea !important;
+        border-radius: 10px !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Load model
+# Load model with lazy import
 @st.cache_resource
 def load_model():
     """Load the TensorFlow model (cached for performance)"""
     try:
-        tfsmlayer = keras.layers.TFSMLayer("MNIST_epic_number_reader.model", call_endpoint='serving_default')
-        model = keras.Sequential([tfsmlayer])
+        # Lazy import of tensorflow for faster startup
+        import tensorflow as tf
+        model = tf.keras.models.load_model('MNIST_epic_number_reader.model')
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -78,200 +84,153 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# Initialize session state
+if 'prediction_result' not in st.session_state:
+    st.session_state.prediction_result = None
+
+# Function to process canvas image and make prediction
+def predict_digit(canvas_data):
+    """Process canvas image and predict digit"""
+    if canvas_data.image_data is None:
+        return None
+    
+    # Convert canvas data to PIL Image
+    img = Image.fromarray(canvas_data.image_data.astype('uint8'), 'RGBA')
+    
+    # Convert to grayscale
+    img = img.convert('L')
+    
+    # Resize to 28x28 (MNIST input size)
+    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+    
+    # Convert to numpy array and normalize
+    img_array = np.array(img).astype('float32') / 255.0
+    
+    # Invert colors (MNIST expects white digits on black background)
+    img_array = 1 - img_array
+    
+    # Reshape for model input
+    img_array = img_array.reshape(1, 28, 28)
+    
+    # Load model and make prediction
+    model = load_model()
+    if model is not None:
+        # Lazy import of tensorflow for prediction
+        import tensorflow as tf
+        predictions = model(img_array, training=False).numpy()
+        predicted_digit = np.argmax(predictions[0])
+        confidence = float(predictions[0][predicted_digit])
+        
+        # Get top 3 predictions
+        top_indices = np.argsort(predictions[0])[-3:][::-1]
+        top_predictions = [
+            {'digit': int(idx), 'confidence': float(predictions[0][idx])}
+            for idx in top_indices
+        ]
+        
+        return {
+            'digit': predicted_digit,
+            'confidence': confidence,
+            'top_predictions': top_predictions,
+            'all_predictions': predictions[0],
+            'processed_image': img_array[0]
+        }
+    return None
+
 # Main layout
 col1, col2 = st.columns([1.5, 1])
 
 with col1:
     st.markdown("### ✏️ Draw Your Digit")
     
-    # Create canvas with Streamlit Components
-    canvas_html = """
-    <div style="text-align: center;">
-        <canvas id="digitCanvas" width="280" height="280" style="border: 3px solid #667eea; background: white; cursor: crosshair; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></canvas>
-        <br><br>
-        <button onclick="clearCanvas()" style="padding: 15px 40px; font-size: 16px; background: #ef4444; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-right: 10px;">
-            🗑️ Clear
-        </button>
-        <p style="color: #666; margin-top: 15px; font-size: 14px;">
-            💡 <strong>Tip:</strong> Draw with your mouse or finger (on touch devices)
-        </p>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('digitCanvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        
-        // Set drawing properties
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 20;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        // Mouse events
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            ctx.beginPath();
-            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        });
-        
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            ctx.stroke();
-        });
-        
-        canvas.addEventListener('mouseup', () => { isDrawing = false; });
-        canvas.addEventListener('mouseout', () => { isDrawing = false; });
-        
-        // Touch events
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isDrawing = true;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            ctx.beginPath();
-            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-        });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!isDrawing) return;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-            ctx.stroke();
-        });
-        
-        canvas.addEventListener('touchend', () => { isDrawing = false; });
-        
-        function clearCanvas() {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'black';
-        }
-        
-        // Store canvas data globally
-        window.getCanvasData = function() {
-            return canvas.toDataURL('image/png');
-        };
-    </script>
-    """
+    # Initialize clear canvas state
+    if 'canvas_key' not in st.session_state:
+        st.session_state.canvas_key = 0
     
-    # Display canvas
-    st.components.v1.html(canvas_html, height=400)
+    # Create drawable canvas
+    canvas_result = st_canvas(
+        fill_color="rgba(255, 255, 255, 0.0)",  # Transparent fill
+        stroke_width=20,
+        stroke_color="#000000",
+        background_color="#FFFFFF",
+        background_image=None,
+        update_streamlit=True,
+        height=280,
+        width=280,
+        drawing_mode="freedraw",
+        point_display_radius=0,
+        display_toolbar=False,  # Hide the toolbar with icons
+        key=f"canvas_{st.session_state.canvas_key}",
+    )
     
     # Buttons
     col_clear, col_predict = st.columns(2)
     with col_clear:
         if st.button("🗑️ Clear Canvas", use_container_width=True):
+            st.session_state.canvas_key += 1  # Change key to clear canvas
+            st.session_state.prediction_result = None  # Clear prediction
             st.rerun()
     
     with col_predict:
-        predict_clicked = st.button("🔍 Predict", use_container_width=True)
+        if st.button("🔍 Predict", use_container_width=True):
+            if canvas_result.image_data is not None:
+                with st.spinner("Analyzing your drawing..."):
+                    result = predict_digit(canvas_result)
+                    st.session_state.prediction_result = result
+                    st.rerun()
+            else:
+                st.warning("Please draw something on the canvas first!")
 
 with col2:
     st.markdown("### 🎯 Prediction")
     
-    if predict_clicked:
-        st.info("💡 **Note**: Please use the file uploader method below to upload your drawing. The canvas-to-SessionState feature is being improved.")
-    
-    # Alternative: File upload for canvas screenshot
-    st.markdown("### 📤 Upload Drawing")
-    st.markdown("**Method**: Draw on the canvas above, take a screenshot, save it, and upload below.")
-    
-    uploaded_file = st.file_uploader(
-        "Upload your digit image",
-        type=['png', 'jpg', 'jpeg'],
-        help="Draw on the canvas above, capture it, save the image, and upload here"
-    )
-    
-    if uploaded_file is not None:
-        # Process the uploaded image
-        image = Image.open(uploaded_file)
+    # Display prediction results
+    if st.session_state.prediction_result is not None:
+        result = st.session_state.prediction_result
         
-        # Convert to RGB if needed
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Display main prediction
+        prediction_html = f"""
+        <div class="prediction-box">
+            <div class="digit-display">{result['digit']}</div>
+            <div class="confidence-text">
+                Confidence: {result['confidence']*100:.2f}%
+            </div>
+        </div>
+        """
+        st.markdown(prediction_html, unsafe_allow_html=True)
         
-        # Convert to grayscale
-        image = image.convert('L')
+        # Confidence progress bar
+        st.progress(result['confidence'])
         
-        # Resize to 28x28 (MNIST input size)
-        image = image.resize((28, 28), Image.Resampling.LANCZOS)
+        # Top 3 predictions
+        st.markdown("### 📊 Top 3 Predictions")
+        for i, pred in enumerate(result['top_predictions']):
+            label = "🥇" if i == 0 else "🥈" if i == 1 else "🥉"
+            st.write(f"{label} **Digit {pred['digit']}**: {pred['confidence']*100:.1f}%")
+            st.progress(pred['confidence'])
         
-        # Convert to numpy array
-        img_array = np.array(image)
+        # Show what model sees (processed image)
+        st.markdown("### 🖼️ Processed Image")
+        processed_img = Image.fromarray((result['processed_image'] * 255).astype(np.uint8))
+        st.image(processed_img.resize((140, 140)), caption="What the model sees (28x28)", use_container_width=False)
         
-        # Normalize to 0-1 range (as per MNIST training data)
-        img_array = img_array.astype('float32') / 255.0
-        
-        # Reshape for model input (batch_size, height, width)
-        img_array = img_array.reshape(1, 28, 28)
-        
-        if model is not None:
-            with st.spinner("Analyzing..."):
-                # Make prediction
-                predictions = model.predict(img_array, verbose=0)
-                predicted_digit = np.argmax(predictions[0])
-                confidence = float(predictions[0][predicted_digit])
-                
-                # Get top 3 predictions
-                top_indices = np.argsort(predictions[0])[-3:][::-1]
-                top_predictions = [
-                    {'digit': int(idx), 'confidence': float(predictions[0][idx])}
-                    for idx in top_indices
-                ]
-                
-                # Display main prediction
-                prediction_html = f"""
-                <div class="prediction-box">
-                    <div class="digit-display">{predicted_digit}</div>
-                    <div class="confidence-text">
-                        Confidence: {confidence*100:.2f}%
-                    </div>
-                </div>
-                """
-                st.markdown(prediction_html, unsafe_allow_html=True)
-                
-                # Confidence progress bar
-                st.progress(confidence)
-                
-                # Top 3 predictions
-                st.markdown("### 📊 Top 3 Predictions")
-                for i, pred in enumerate(top_predictions):
-                    label = "🥇" if i == 0 else "🥈" if i == 1 else "🥉"
-                    st.write(f"{label} **Digit {pred['digit']}**: {pred['confidence']*100:.1f}%")
-                    st.progress(pred['confidence'])
-                
-                # Show what model sees (processed image)
-                st.markdown("### 🖼️ Processed Image")
-                processed_img = Image.fromarray((img_array[0] * 255).astype(np.uint8))
-                st.image(processed_img.resize((280, 280)), caption="What the model sees (28x28)", use_container_width=True)
-                
-                # Show prediction probabilities
-                with st.expander("📊 See all probabilities"):
-                    for i, prob in enumerate(predictions[0]):
-                        if prob > 0.001:  # Only show probabilities > 0.1%
-                            bar_color = "#10b981" if i == predicted_digit else "#94a3b8"
-                            st.write(f"**{i}**: {prob*100:.2f}%")
-                            st.progress(prob)
-        else:
-            st.error("Model not loaded. Please check model files.")
+        # Show prediction probabilities
+        with st.expander("📊 See all probabilities"):
+            for i, prob in enumerate(result['all_predictions']):
+                if prob > 0.001:  # Only show probabilities > 0.1%
+                    st.write(f"**{i}**: {prob*100:.2f}%")
+                    st.progress(prob)
     
     else:
-        st.info("Draw a digit on the canvas and upload it to see predictions!")
+        st.info("Draw a digit on the canvas and click **Predict** to see results!")
         
         # Instructions
         st.markdown("""
         ### 💡 How to Use
-        1. **Draw** a digit 0-9 on the canvas above
-        2. **Take a screenshot** of the canvas
-        3. **Save** as PNG or JPG
-        4. **Upload** using the file uploader
-        5. See instant predictions!
+        1. **Draw** a digit 0-9 on the canvas
+        2. **Click Predict** to get instant results
+        3. **Clear Canvas** to start over
+        4. See live predictions with confidence scores!
         """)
         
         # Tips
@@ -282,6 +241,7 @@ with col2:
             - Try to match printed number style
             - Avoid extra lines or marks
             - Best results with **thick strokes**
+            - Draw larger digits for better accuracy
             """)
 
 # Footer
@@ -316,8 +276,9 @@ with st.sidebar:
     - Normalized to 0-1 range
     
     **Processing**:
-    - Upload → 28×28 resize
+    - Canvas → 28×28 resize
     - Grayscale conversion
+    - Color inversion (white on black)
     - Pixel normalization
     - Direct model inference
     """)

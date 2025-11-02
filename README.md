@@ -3,26 +3,27 @@
 An interactive web application for recognizing handwritten digits using a deep learning model trained on the MNIST dataset. Built with **TensorFlow** and **Streamlit**.
 
 ![Model Accuracy](https://img.shields.io/badge/Accuracy-97.82%25-brightgreen)
-![Python Version](https://img.shields.io/badge/Python-3.9-blue)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-orange)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.28-red)
+![Python Version](https://img.shields.io/badge/Python-3.11-blue)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.18-orange)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.51-red)
 
 ## 🌟 Features
 
-- **Interactive Canvas**: Draw digits directly on the webpage with your mouse or touch
+- **Interactive Canvas**: Draw digits directly with `streamlit-drawable-canvas`
 - **Real-time Prediction**: Get instant predictions with confidence scores
+- **Optimized Performance**: Lazy TensorFlow loading for faster startup
 - **Top 3 Predictions**: See the top 3 most likely digits with their probabilities
 - **Beautiful UI**: Modern gradient design with smooth animations
-- **Custom HTML Canvas**: No external dependencies - built-in canvas
+- **No File Upload Needed**: Direct canvas-to-model prediction pipeline
 - **Mobile Support**: Touch-friendly canvas works on all devices
-- **100% Free**: Host forever on Streamlit Cloud - no credit card required!
+- **100% Free**: Host forever on Streamlit Cloud - no dependencies issues!
 
 ## 🚀 Quick Start (Local)
 
 ### Prerequisites
 
-- Python 3.9+
-- pip package manager
+- Python 3.11+
+- UV package manager (recommended) or pip
 
 ### Installation
 
@@ -32,18 +33,40 @@ An interactive web application for recognizing handwritten digits using a deep l
    cd MNIST-Project
    ```
 
-2. **Install dependencies**
+2. **Using UV (Recommended)**
    ```bash
-   pip install -r requirements.txt
+   # Install UV if not already installed
+   pip install uv
+   
+   # Install dependencies and run
+   uv run streamlit run streamlit_app.py
    ```
 
-3. **Run the application**
+3. **Using pip (Alternative)**
    ```bash
+   # Create virtual environment
+   python -m venv env
+   # On Windows: env\Scripts\activate
+   # On macOS/Linux: source env/bin/activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Run the application
    streamlit run streamlit_app.py
    ```
 
 4. **Open in browser**
    The app will automatically open at `http://localhost:8501`
+
+## ☁️ Streamlit Cloud Deployment
+
+This app is fully compatible with Streamlit Cloud. Simply:
+
+1. Fork this repository
+2. Connect your GitHub account to [Streamlit Cloud](https://share.streamlit.io/)
+3. Deploy with `streamlit_app.py` as the main file
+4. Dependencies will be automatically installed from `requirements.txt`
 
 ## 🎮 How to Use
 
@@ -51,18 +74,19 @@ An interactive web application for recognizing handwritten digits using a deep l
    - Draw with your mouse or touch
    - Draw in the center for best results
 
-2. **Capture & Upload**
-   - Take a screenshot of your drawing
-   - Save as PNG or JPG
-   - Upload using the file uploader below
+2. **Get predictions**
+   - Click "Predict" to analyze your drawing
+   - See instant predictions with confidence scores
+   - View top 3 predictions with probabilities
 
 3. **View results**
-   - See instant predictions!
-   - Main prediction with confidence
-   - Top 3 predictions with probabilities
-   - All probabilities (expandable)
+   - Main prediction with confidence percentage
+   - Top 3 predictions ranked by confidence
+   - Processed image showing what the model sees
 
-4. **Clear** and start over!
+4. **Clear and repeat**
+   - Use "Clear Canvas" button to start over
+   - Draw new digits and compare results
 
 ## 📊 Model Details
 
@@ -81,12 +105,15 @@ An interactive web application for recognizing handwritten digits using a deep l
 ```
 MNIST-Project/
 │
-├── streamlit_app.py              # Main Streamlit application
-├── requirements.txt               # Python dependencies
-├── .streamlit/
-│   └── config.toml               # Streamlit theme configuration
+├── streamlit_app.py                      # Main Streamlit application
+├── requirements.txt                      # Python dependencies (for Streamlit Cloud)  
+├── pyproject.toml                        # UV project configuration
+├── uv.lock                              # UV lock file for reproducible builds
 │
-├── MNIST_epic_number_reader.model/  # Saved TensorFlow model
+├── .streamlit/
+│   └── config.toml                      # Streamlit theme configuration
+│
+├── MNIST_epic_number_reader.model/     # Saved TensorFlow model
 │   ├── saved_model.pb
 │   └── variables/
 │       ├── variables.data-00000-of-00001
@@ -94,8 +121,8 @@ MNIST-Project/
 │
 ├── MNIST project by Himesh Maniyar.ipynb  # Original training notebook
 │
-├── README.md                     # This file
-└── .gitignore                    # Git ignore rules
+├── README.md                            # Project documentation
+└── .gitignore                           # Git ignore rules
 ```
 
 ## 🛠️ Technologies Used
@@ -109,7 +136,7 @@ MNIST-Project/
 
 ## 🔬 How It Works
 
-1. **User draws** on the 280×280 canvas
+1. **User draws** on the clean 280×280 canvas (toolbar-free interface)
 2. **Image processed**: 
    - Converted to grayscale
    - Resized to 28×28 pixels (MNIST input size)
@@ -118,9 +145,9 @@ MNIST-Project/
    - Input: (1, 28, 28) numpy array
    - Output: 10 probabilities (digits 0-9)
 4. **Results displayed**: 
-   - Main prediction with confidence
-   - Top 3 predictions
-   - Visual processed image
+   - Main prediction with confidence percentage
+   - Top 3 ranked predictions
+   - Visual processed image (what the model actually sees)
 
 ## 🎯 Drawing Tips
 
