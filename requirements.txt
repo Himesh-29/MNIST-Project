@@ -1,5 +1,5 @@
-streamlit==1.28.0
-streamlit-drawable-canvas==0.9.3
-tensorflow==2.13.0
-numpy==1.24.3
-pillow==10.0.1
+streamlit>=1.28.0
+landingai-streamlit-drawable-canvas
+tensorflow>=2.15.0
+numpy>=1.24.0
+pillow>=10.0.0

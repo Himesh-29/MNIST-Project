@@ -4,7 +4,7 @@ An interactive web application for recognizing handwritten digits using a deep l
 
 ![Model Accuracy](https://img.shields.io/badge/Accuracy-97.82%25-brightgreen)
 ![Python Version](https://img.shields.io/badge/Python-3.9-blue)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13-orange)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-orange)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.28-red)
 
 ## 🌟 Features
@@ -101,7 +101,7 @@ MNIST-Project/
 ## 🛠️ Technologies Used
 
 - **Streamlit**: Interactive web app framework
-- **streamlit-drawable-canvas**: Drawing canvas component
+- **landingai-streamlit-drawable-canvas**: Drawing canvas component (maintained fork)
 - **TensorFlow/Keras**: Deep learning model
 - **NumPy**: Numerical operations
 - **Pillow**: Image processing
@@ -163,7 +163,7 @@ The Streamlit app is easy to extend. Edit `streamlit_app.py` to add:
 - [MNIST Dataset](http://yann.lecun.com/exdb/mnist/)
 - [TensorFlow Tutorials](https://www.tensorflow.org/tutorials)
 - [Streamlit Documentation](https://docs.streamlit.io/)
-- [Streamlit Drawable Canvas](https://github.com/andfanilo/streamlit-drawable-canvas)
+- [LandingAI Drawable Canvas](https://github.com/landing-ai/streamlit-drawable-canvas)
 - [Streamlit Cloud Deployment](https://docs.streamlit.io/streamlit-community-cloud)
 
 ## 🤝 Contributing
@@ -180,5 +180,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - MNIST dataset creators
 - TensorFlow team
 - Streamlit team
-- AndFanilo (streamlit-drawable-canvas)
+- LandingAI (streamlit-drawable-canvas fork)
 - All contributors and users
