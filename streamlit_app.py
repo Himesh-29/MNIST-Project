@@ -62,8 +62,11 @@ def load_model():
     try:
         # Lazy import of tensorflow for faster startup
         import tensorflow as tf
-        model = tf.keras.models.load_model('MNIST_epic_number_reader.model')
+        
+        # Load SavedModel directly with TensorFlow (Keras 3 compatible)
+        model = tf.saved_model.load('MNIST_epic_number_reader.model')
         return model
+        
     except Exception as e:
         st.error(f"Error loading model: {e}")
         return None
@@ -117,24 +120,44 @@ def predict_digit(canvas_data):
     if model is not None:
         # Lazy import of tensorflow for prediction
         import tensorflow as tf
-        predictions = model(img_array, training=False).numpy()
-        predicted_digit = np.argmax(predictions[0])
-        confidence = float(predictions[0][predicted_digit])
         
-        # Get top 3 predictions
-        top_indices = np.argsort(predictions[0])[-3:][::-1]
-        top_predictions = [
-            {'digit': int(idx), 'confidence': float(predictions[0][idx])}
-            for idx in top_indices
-        ]
-        
-        return {
-            'digit': predicted_digit,
-            'confidence': confidence,
-            'top_predictions': top_predictions,
-            'all_predictions': predictions[0],
-            'processed_image': img_array[0]
-        }
+        try:
+            # Use TensorFlow SavedModel for prediction
+            infer = model.signatures['serving_default']
+            
+            # Prepare input tensor - reshape to (batch, 28, 28, 1) for most MNIST models
+            input_tensor = tf.convert_to_tensor(img_array.reshape(1, 28, 28, 1), dtype=tf.float32)
+            
+            # Get input name from signature
+            input_signature = infer.structured_input_signature[1]
+            input_name = list(input_signature.keys())[0]
+            
+            # Make prediction
+            predictions = infer(**{input_name: input_tensor})
+            
+            # Extract predictions from output
+            predictions = list(predictions.values())[0].numpy()
+            
+            predicted_digit = np.argmax(predictions[0])
+            confidence = float(predictions[0][predicted_digit])
+            
+            # Get top 3 predictions
+            top_indices = np.argsort(predictions[0])[-3:][::-1]
+            top_predictions = [
+                {'digit': int(idx), 'confidence': float(predictions[0][idx])}
+                for idx in top_indices
+            ]
+            
+            return {
+                'digit': predicted_digit,
+                'confidence': confidence,
+                'top_predictions': top_predictions,
+                'all_predictions': predictions[0],
+                'processed_image': img_array[0]
+            }
+            
+        except Exception:
+            return None
     return None
 
 # Main layout
