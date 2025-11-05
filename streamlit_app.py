@@ -2,6 +2,12 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 from streamlit_drawable_canvas import st_canvas
+from datetime import datetime
+
+# Handle UptimeRobot monitoring pings
+if 'heartbeat' in st.query_params:
+    st.write(f"✅ App is alive at {datetime.now()}")
+    st.stop()
 
 # Page configuration
 st.set_page_config(
