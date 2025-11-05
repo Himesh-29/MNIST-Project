@@ -59,15 +59,6 @@ An interactive web application for recognizing handwritten digits using a deep l
 4. **Open in browser**
    The app will automatically open at `http://localhost:8501`
 
-## ☁️ Streamlit Cloud Deployment
-
-This app is fully compatible with Streamlit Cloud. Simply:
-
-1. Fork this repository
-2. Connect your GitHub account to [Streamlit Cloud](https://share.streamlit.io/)
-3. Deploy with `streamlit_app.py` as the main file
-4. Dependencies will be automatically installed from `requirements.txt`
-
 ## 🎮 How to Use
 
 1. **Draw a digit** on the canvas (0-9)
@@ -113,11 +104,7 @@ MNIST-Project/
 ├── .streamlit/
 │   └── config.toml                      # Streamlit theme configuration
 │
-├── MNIST_epic_number_reader.model/     # Saved TensorFlow model
-│   ├── saved_model.pb
-│   └── variables/
-│       ├── variables.data-00000-of-00001
-│       └── variables.index
+├── MNIST_model.keras/     # Saved TensorFlow Keras model
 │
 ├── MNIST project by Himesh Maniyar.ipynb  # Original training notebook
 │
@@ -158,40 +145,6 @@ MNIST-Project/
 - ❌ Avoid extra lines or marks
 - ❌ Avoid very thin or shaky lines
 
-## 🔧 Customization
-
-### Adjust Theme
-
-Edit `.streamlit/config.toml`:
-```toml
-[theme]
-primaryColor = "#667eea"  # Change primary color
-backgroundColor = "#f0f2f6"  # Change background
-```
-
-### Update Model
-
-Re-train the model using the Jupyter notebook and save with:
-```python
-model.save('MNIST_epic_number_reader.model')
-```
-
-### Modify Features
-
-The Streamlit app is easy to extend. Edit `streamlit_app.py` to add:
-- Different brush sizes
-- Color options
-- History tracking
-- Export predictions
-- More visualizations
-
-## 📚 Learning Resources
-
-- [MNIST Dataset](http://yann.lecun.com/exdb/mnist/)
-- [TensorFlow Tutorials](https://www.tensorflow.org/tutorials)
-- [Streamlit Documentation](https://docs.streamlit.io/)
-- [Streamlit Cloud Deployment](https://docs.streamlit.io/streamlit-community-cloud)
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -200,10 +153,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 **Himesh Maniyar**  
 - GitHub: [@Himesh-29](https://github.com/Himesh-29)
-
-## 🙏 Acknowledgments
-
-- MNIST dataset creators
-- TensorFlow team
-- Streamlit team
-- All contributors and users
